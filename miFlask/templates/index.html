@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crud</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Consultar</h1>
+    <button onclick="consultar()">Consultar</button>
+    <table>
+        <tr>
+            <th>id</th>
+            <th>nombre</th>
+            <th>edad</th>
+        </tr>
+        <tbody id="tabla"></tbody>
+    </table>
+
+    <h1>Agregar</h1>
+    <form onsubmit="agregar(event)">
+        <input type="text" id="nombre" placeholder="nombre">
+        <input type="number" id="edad" placeholder="edad">
+        <button type="submit">Agregar</button>
+    </form>
+
+    <h1>Eliminar</h1>
+    <form onsubmit="eliminar(event)">
+        <input type="number" id="eliminar-id" placeholder="id">
+        <button type="submit">Eliminar</button>
+    </form>
+
+    <script>
+        function consultar() {
+            fetch('/usuarios')
+            .then(function(respuesta) {
+                return respuesta.json()
+            })
+            .then(function(data) {
+                var tabla = document.getElementById('tabla')
+                tabla.innerHTML = ''
+
+                for (var i = 0; i < data.usuarios.length; i++) {
+                    var usuario = data.usuarios[i]
+                    tabla.innerHTML += '<tr><td>' + usuario.id + '</td><td>' + usuario.Nombre + '</td><td>' + usuario.Edad + '</td></tr>'
+                }
+            })
+        }
+
+        function agregar(e) {
+            e.preventDefault()
+            var nombre = document.getElementById('nombre').value
+            var edad = document.getElementById('edad').value
+
+            fetch('/usuarios', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ Nombre: nombre, Edad: parseInt(edad) })
+            })
+            .then(function() {
+                consultar()
+            })
+        }
+
+        function eliminar(e) {
+            e.preventDefault()
+            var id = document.getElementById('eliminar-id').value
+
+            fetch('/usuarios/' + id, { method: 'DELETE' })
+            .then(function() {
+                consultar()
+            })
+        }
+    </script>
+</body>
+</html>

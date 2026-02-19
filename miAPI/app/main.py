@@ -1,5 +1,5 @@
 #importaciones
-from fastapi import FastAPI
+from fastapi import FastAPI, status, HTTPException
 import asyncio
 from typing import Optional #importacion para los parametros opcionales
 #intancia del servidor
@@ -29,13 +29,13 @@ async def hola():
         "Status":"200"
     }
     
-@app.get("/v1/usuario{id}",tags=['Parametro Obligatorio']) #con las llaves especificas que se necesita un parametro, en este caso una id
+@app.get("/v1/ParametroOB/{id}",tags=['Parametro Obligatorio']) #con las llaves especificas que se necesita un parametro, en este caso una id
 async def consultaUno(id:int): #forza una validacion de que el parametro id sea un entero
     return {"mensaje":"Usuario Encontrado",
             "Usuario":id,
             "status":200}
 
-@app.get("/v1/usuarios/",tags=['Parametro Opcional']) #No puede haber enpoints del mismo metodo con el mismo nombre, se eliminan las llaves que especifican el parametro
+@app.get("/v1/ParametrosOp/",tags=['Parametro Opcional']) #No puede haber enpoints del mismo metodo con el mismo nombre, se eliminan las llaves que especifican el parametro
 async def consultaTodos(id:Optional[int]=None): #La funcion tampoco se puede llamar igual. El parametro ahora cambia a opcional con [int] y con =None se manda a nulo en caso de que no haya valor.
     if id is not None: #cuando encuentra el usuario
         for usuariok in usuarios:
@@ -54,4 +54,59 @@ async def consultaTodos(id:Optional[int]=None): #La funcion tampoco se puede lla
             "Mensaje":"No se proporciono id",
             "status": "204"
         }
+
+@app.get("/v1/usuarios/",tags=['CRUD HTTP'])
+async def consultaT():
+    return {
+        "status":"200",
+        "total":len(usuarios),
+        "usuarios":usuarios
+    }
+
+@app.post("/v1/usuarios/",tags=['CRUD HTTP'])
+async def agregar_usuario(usuario:dict):
+    for usr in usuarios:
+        if usr["id"] == usuario.get("id"):
+            raise HTTPException(
+                status_code= 400,
+                detail= "El id ya existe"
+                )
+    usuarios.append(usuario)
+    return {
+        "status":"200",
+        "Mensaje":"Usuario agregado",
+        "usuario":usuario
+    }
     
+
+@app.put("/v1/usuarios/", tags=['CRUD HTTP'])
+async def actualizar_usuario(usuario: dict):
+    for usr in usuarios:
+        if usr["id"] == usuario["id"]:
+            usr["Nombre"] = usuario["Nombre"]
+            usr["Edad"]   = usuario["Edad"]
+
+            return {
+                "status":"200",
+                "Mensaje": "Usuario actualizado",
+                "usuario": usr
+            }
+    raise HTTPException(
+        status_code=404,
+        detail=f"El usuario con id {usuario['id']} no existe"
+    )
+
+@app.delete("/v1/usuarios/{id}", tags=['CRUD HTTP'])
+async def eliminar_usuario(id: int):
+    for i, usr in enumerate(usuarios):
+        if usr["id"] == id:
+            eliminado = usuarios.pop(i)
+            return {
+                "status":"200",
+                "Mensaje": "Usuario eliminado",
+                "usuario": eliminado
+            }
+    raise HTTPException(
+        status_code=404,
+        detail=f"El usuario con id {id} no existe"
+    )

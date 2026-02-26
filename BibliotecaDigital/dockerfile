@@ -1,0 +1,19 @@
+from python:3.12-slim 
+
+#creamos la carpeta de la aplicacion
+WORKDIR /app
+
+#copiamos el archivo de requerimientos, se usa el espacio ( .) para indicar que se copie en la carpeta actual del contenedor, que es /app
+COPY requirements.txt . 
+
+#instalamos las dependencias
+RUN pip install --no-cache-dir -r requirements.txt
+
+#copiar el resto de los archivos de la aplicacion, copia la API
+COPY ./app ./app
+
+#exponer el puerto del contenedor
+EXPOSE 5020
+
+#comando para ejecutar la aplicacion en uvicor, se usan strings para evitar problemas con el formato del comando, se indica el host y el puerto donde se ejecutara la aplicacion dentro del contenedor
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5020", "--reload"] 

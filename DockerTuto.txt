@@ -1,0 +1,3 @@
+Desde la raiz del proyecto
+Docker compose up --build #el --build forza que se reconstruya la imagen cada que se hagan cambios
+docker run

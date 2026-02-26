@@ -2,6 +2,9 @@
 from fastapi import FastAPI, status, HTTPException
 import asyncio
 from typing import Optional #importacion para los parametros opcionales
+from pydantic import BaseModel #importacion para la validacion de datos, se crea una clase que hereda de BaseModel y se definen los campos que se esperan recibir en el endpoint, con su tipo de dato correspondiente
+from pydantic import Field #importacion para agregar validaciones adicionales a los campos del modelo, como longitud mínima, máxima, expresiones regulares, etc.
+
 #intancia del servidor
 app = FastAPI(
     title="Mi Primer API",
@@ -15,6 +18,12 @@ usuarios=[
     {"id":2, "Nombre":"Coral", "Edad":20},
     {"id":3, "Nombre":"Saul", "Edad":24},
 ]
+
+#Modelo pydantic para la validacion de datos
+class Crear_Usuario(BaseModel):
+    id: int = Field(..., gt=0, description="Identificador de usuario")
+    Nombre: str = Field(..., min_length=3, max_length=50, description="Nombre del usuario", example = "Emiliano Ledesma")
+    Edad: int = Field(..., ge=1, le=125, description="Edad valida entre 1 - 125")
 
 #endpoints
 @app.get("/",tags=['Inicio'])
@@ -64,9 +73,9 @@ async def consultaT():
     }
 
 @app.post("/v1/usuarios/",tags=['CRUD HTTP'])
-async def agregar_usuario(usuario:dict):
+async def agregar_usuario(usuario:Crear_Usuario):
     for usr in usuarios:
-        if usr["id"] == usuario.get("id"):
+        if usr["id"] == usuario.id:
             raise HTTPException(
                 status_code= 400,
                 detail= "El id ya existe"

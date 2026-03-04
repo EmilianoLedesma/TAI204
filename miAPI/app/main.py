@@ -1,9 +1,12 @@
 #importaciones
-from fastapi import FastAPI, status, HTTPException
+from fastapi import FastAPI, status, HTTPException, Depends
 import asyncio
 from typing import Optional #importacion para los parametros opcionales
 from pydantic import BaseModel #importacion para la validacion de datos, se crea una clase que hereda de BaseModel y se definen los campos que se esperan recibir en el endpoint, con su tipo de dato correspondiente
 from pydantic import Field #importacion para agregar validaciones adicionales a los campos del modelo, como longitud mínima, máxima, expresiones regulares, etc.
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+import secrets #para contraseñas, hashes y ese pedo
+
 
 #intancia del servidor
 app = FastAPI(
@@ -11,6 +14,8 @@ app = FastAPI(
     description="Emiliano Ledesma",
     version="1.0"
 )
+
+
 
 #tabla ficticia
 usuarios=[
@@ -24,6 +29,24 @@ class Crear_Usuario(BaseModel):
     id: int = Field(..., gt=0, description="Identificador de usuario")
     Nombre: str = Field(..., min_length=3, max_length=50, description="Nombre del usuario", example = "Emiliano Ledesma")
     Edad: int = Field(..., ge=1, le=125, description="Edad valida entre 1 - 125")
+    
+    
+#Seguridad de endpoints con HTTPBasic
+
+Security = HTTPBasic()
+
+def verificar_peticion(credenciales: HTTPBasicCredentials = Depends(Security)):
+    usuario_auth = secrets.compare_digest(credenciales.username,"emiliano")
+    contra_auth = secrets.compare_digest(credenciales.password, "123456")
+    
+    if not(usuario_auth and contra_auth):
+        raise HTTPException(
+                status_code= 401,
+                detail= "Credenciales no autorizadas"
+                )
+    
+    return credenciales.username
+
 
 #endpoints
 @app.get("/",tags=['Inicio'])
@@ -106,16 +129,16 @@ async def actualizar_usuario(usuario: dict):
     )
 
 @app.delete("/v1/usuarios/{id}", tags=['CRUD HTTP'])
-async def eliminar_usuario(id: int):
+async def eliminar_usuario(id: int, usuario_auth: str = Depends(verificar_peticion)):
     for i, usr in enumerate(usuarios):
         if usr["id"] == id:
             eliminado = usuarios.pop(i)
             return {
                 "status":"200",
-                "Mensaje": "Usuario eliminado",
+                "Mensaje": f"Usuario eliminado por {usuario_auth}",
                 "usuario": eliminado
             }
     raise HTTPException(
-        status_code=404,
-        detail=f"El usuario con id {id} no existe"
+        status_code=401,
+        detail=f"El usuario no tiene los permisos"
     )

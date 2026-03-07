@@ -1,0 +1,9 @@
+services:
+  api:
+    build: . # Construye la imagen a partir del Dockerfile en el directorio actual
+    container_name: miApiJWT # Nombre del contenedor
+    ports: 
+      - "5030:5030" # Mapea el puerto 5000 del contenedor al puerto 5000 de la máquina host
+    volumes:  # guarda los cambios realizados en el contenedor 
+      - ./app:/app/app  # Mapea el directorio actual al directorio /app dentro del contenedor 
+  

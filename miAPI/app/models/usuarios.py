@@ -3,6 +3,5 @@ from pydantic import BaseModel #importacion para la validacion de datos, se crea
 from pydantic import Field #importacion para agregar validaciones adicionales a los campos del modelo, como longitud mínima, máxima, expresiones regulares, etc.
 
 class Crear_Usuario(BaseModel):
-    id: int = Field(..., gt=0, description="Identificador de usuario")
     Nombre: str = Field(..., min_length=3, max_length=50, description="Nombre del usuario", example = "Emiliano Ledesma")
     Edad: int = Field(..., ge=1, le=125, description="Edad valida entre 1 - 125")

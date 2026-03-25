@@ -1,2 +1,4 @@
 fastapi
 uvicorn[standard] #Si se necesita una version en especifico se puede colocar asi: uvicorn[standard]==0.15.0
+sqlalchemy
+psycopg2-binary

@@ -3,32 +3,24 @@ from app.data.database import usuarios
 from app.models.usuarios import Crear_Usuario
 from app.security.auth import verificar_peticion
 
+from sqlalchemy.orm import Session
+from app.data.db import get_db
+from app.data.usuario import Usuario as usuarioDB
+
 router = APIRouter(
     prefix = "/v1/usuarios", tags=['CRUD HTTP']
 )
 
-
-@router.get("/")
-async def consultaT():
-    return {
-        "status":"200",
-        "total":len(usuarios),
-        "usuarios":usuarios
-    }
-
 @router.post("/", status_code = status.HTTP_201_CREATED)
-async def agregar_usuario(usuario:Crear_Usuario):
-    for usr in usuarios:
-        if usr["id"] == usuario.id:
-            raise HTTPException(
-                status_code= 400,
-                detail= "El id ya existe"
-                )
-    usuarios.append(usuario)
+async def agregar_usuario(usuarioP:Crear_Usuario, db: Session = Depends(get_db)):
+    usuario_nuevo = usuarioDB(nombre=usuarioP.Nombre, edad=usuarioP.Edad)
+    db.add(usuario_nuevo)
+    db.commit()
+    db.refresh(usuario_nuevo)
     return {
         "status":"200",
         "Mensaje":"Usuario agregado",
-        "usuario":usuario
+        "usuario":usuarioP
     }
     
 
@@ -63,3 +55,12 @@ async def eliminar_usuario(id: int, usuario_auth: str = Depends(verificar_petici
         status_code=401,
         detail=f"El usuario no tiene los permisos"
     )
+
+@router.get("/")
+async def consultaT(db: Session = Depends(get_db)):
+    queryUsuario = db.query(usuarioDB).all()
+    return {
+        "status":"200",
+        "total":len(queryUsuario),
+        "usuarios":queryUsuario
+    }

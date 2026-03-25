@@ -1,6 +1,11 @@
 #importaciones
 from fastapi import FastAPI, APIRouter
 from app.routers import usuarios, varios
+from app.data.db import engine
+from app.data import usuario
+
+usuario.Base.metadata.create_all(bind=engine) 
+
 #intancia del servidor
 app = FastAPI(
     title="Mi Primer API",
